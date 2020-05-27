@@ -77,83 +77,6 @@ public class VideodownloadPlugin(private val registrar: Registrar, channel: Meth
         }
     }
 
-    var dataJsonStr = """{
-    "errno": 0,
-    "data": {
-        "isBuy": false,
-        "course": {
-            "id": 1,
-            "periodId": 200,
-            "gradeId": 204,
-            "subjectsId": 6,
-            "sortIndex": 1,
-            "show": 1,
-            "teacherName": "教师名称",
-            "professionalTitle": "一级教师",
-            "name": "小学4语文2",
-            "imgUrl": "https://k12test.oss-cn-shenzhen.aliyuncs.com/k12-admin-project/school/null/2020/04/16/a4947f141.jpg",
-            "content": "<p>大大的</p>",
-            "masterHand": 0,
-            "classPeriodNum": 500,
-            "joinNum": 600,
-            "price": 1.01,
-            "updateTime": "2020-04-17 18:14:32",
-            "createTime": "2020-04-16 11:53:48"
-        },
-        "collect": false,
-        "classPeriod": [
-            {
-                "id": 1,
-                "courseId": 1,
-                "periodId": 200,
-                "gradeId": 201,
-                "subjectsId": 5,
-                "sortIndex": 1,
-                "name": "课时2",
-                "type": 0,
-                "videoUrl": "http://1253131631.vod2.myqcloud.com/26f327f9vodgzp1253131631/f4bdff799031868222924043041/playlist.m3u8",
-                "liveUrl": null,
-                "liveEncodeUrl": null,
-                "viewsNumber": null,
-                "clickNumber": null,
-                "videoStatus": 1,
-                "liveStatus": 0,
-                "startTime": null,
-                "endTime": null,
-                "updateTime": "2020-04-17 17:43:56",
-                "createTime": "2020-04-17 10:37:31",
-                "courseName": "课程1",
-                "imgUrl": "https:\/\/k12test.oss-cn-shenzhen.aliyuncs.com\/k12-admin-project\/school\/null\/2020\/04\/16\/a4947f141.jpg",
-                "price": 0
-            },
-            {
-                "id": 3,
-                "courseId": 1,
-                "periodId": 200,
-                "gradeId": 201,
-                "subjectsId": 5,
-                "sortIndex": 1,
-                "name": "课时4课时4课时4课时4课时4课时4课时4课时4",
-                "type": 0,
-                "videoUrl": "http://1252463788.vod2.myqcloud.com/95576ef5vodtransgzp1252463788/68e3febf4564972819220421305/v.f220.m3u8",
-                "liveUrl": null,
-                "liveEncodeUrl": null,
-                "viewsNumber": null,
-                "clickNumber": null,
-                "videoStatus": 1,
-                "liveStatus": 0,
-                "startTime": null,
-                "endTime": null,
-                "updateTime": "2020-04-17 17:43:48",
-                "createTime": "2020-04-17 10:37:42",
-                "courseName": "课程1",
-                "imgUrl": "https:\/\/k12test.oss-cn-shenzhen.aliyuncs.com\/k12-admin-project\/school\/null\/2020\/04\/16\/a4947f141.jpg",
-                "price": 0
-            }
-        ]
-    },
-    "errmsg": "成功"
-}""";
     var register = false
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         if (!register) {
@@ -189,8 +112,6 @@ public class VideodownloadPlugin(private val registrar: Registrar, channel: Meth
         val videoUrl = map["videoUrl"] as String
 
         val list = Aria.download(this).totalTaskList
-        log("当前总任务：$list")
-
         list.find { it.key == videoUrl }.also {
             if (it != null) {
                 Aria.download(this).load(it.id).resume(true)
@@ -263,7 +184,6 @@ public class VideodownloadPlugin(private val registrar: Registrar, channel: Meth
             val temp: MutableList<String> =
                     ArrayList()
             for (tsUrl in tsUrls) {
-                log("http://video.gzk12.com/05698f144c4545778d8e3468b88c8a64/$tsUrl")
                 temp.add("http://video.gzk12.com/05698f144c4545778d8e3468b88c8a64/$tsUrl")
             }
             return temp
@@ -273,69 +193,68 @@ public class VideodownloadPlugin(private val registrar: Registrar, channel: Meth
 
     @Download.onWait
     fun taskWait(task: DownloadTask) {
-        log("taskWait ==> ${task.downloadEntity.fileName}")
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskStart
     fun taskStart(task: DownloadTask) {
-        log("taskStart ==> ${task.downloadEntity.fileName}")
-//        mData.find { task.key == it.key }?.btState = false
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskResume
     fun taskResume(task: DownloadTask) {
-        log("taskResume ==> ${task.downloadEntity.fileName}")
-//        mData.find { task.key == it.key }?.btState = false
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskStop
     fun taskStop(task: DownloadTask) {
-        log("taskStop ==> ${task.downloadEntity.fileName}")
-//        mData.find { task.key == it.key }?.btState = true
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskCancel
     fun taskCancel(task: DownloadTask) {
-        log("taskCancel ==> ${task.downloadEntity.fileName}")
-//        mData.find { task.key == it.key }?.btState = true
         notifyDataChanged(task.downloadEntity.url)
     }
 
     @Download.onTaskFail
     fun taskFail(task: DownloadTask?) {
-        log("taskFail ==> ${task?.downloadEntity?.fileName}")
         if (task == null || task.entity == null) {
             return
         }
-//        mData.find { task.key == it.key }?.btState = true
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskComplete
     fun taskComplete(task: DownloadTask) {
-        log("taskComplete ==> ${task.downloadEntity.fileName}")
-//        log(FileUtil.getFileMD5(File(task.filePath)))
-        log("taskComplete:${task.filePath}")
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
     @Download.onTaskRunning
     fun taskRunning(task: DownloadTask) {
-        notifyDataChanged()
+        notifyDataChanged(currentEntity = task.entity)
     }
 
-    private fun notifyDataChanged(deleteUrl: String? = null) {
-        val temps = Aria.download(this).totalTaskList
+    var temps: MutableList<AbsEntity>? = null
+    private fun notifyDataChanged(deleteUrl: String? = null, currentEntity: AbsEntity? = null) {
+        val newTaskList = Aria.download(this).totalTaskList
+        if (temps == null || temps!!.isEmpty() || (temps!!.size != newTaskList.size)) {
+            temps = newTaskList
+        }
         val maps = HashMap<String, AbsEntity?>()
-        temps.forEach {
-            it as DownloadEntity
-            if (deleteUrl == it.url) {
-                maps[it.url] = null
+        temps?.forEachIndexed { index, absEntity ->
+            val saveEntity = if (currentEntity != null &&
+                    currentEntity.key == absEntity.key
+            ) {
+                currentEntity
             } else {
-                maps[it.url] = it
+                absEntity
+            }
+            temps!![index] = saveEntity
+            saveEntity as DownloadEntity
+            if (deleteUrl == saveEntity.url) {
+                maps[saveEntity.url] = null
+            } else {
+                maps[saveEntity.url] = saveEntity
             }
         }
         val tempsStr = Gson().toJson(maps)

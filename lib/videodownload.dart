@@ -14,7 +14,7 @@ class Videodownload {
   Videodownload.private(MethodChannel channel) : _channel = channel;
 
   static final Videodownload _instance =
-  Videodownload.private(const MethodChannel('videodownload'));
+      Videodownload.private(const MethodChannel('videodownload'));
 
   Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
@@ -22,7 +22,8 @@ class Videodownload {
   }
 
   void download(String videoUrl, String downloadPath) {
-    _channel.invokeMethod('download', {'videoUrl': videoUrl, 'downloadPath': downloadPath});
+    _channel.invokeMethod(
+        'download', {'videoUrl': videoUrl, 'downloadPath': downloadPath});
   }
 
   void pauseDownload(String videoUrl) {
@@ -37,16 +38,18 @@ class Videodownload {
     _channel.invokeMethod('cancelDownload', {'videoUrl': videoUrl});
   }
 
-  DownloadListener _downloadListener;
+  Map<String, DownloadListener> _downloadListenerMap = Map();
 
-  void addDownloadListener(DownloadListener listener) {
-    this._downloadListener = listener;
+  void addDownloadListener(String listenerName, DownloadListener listener) {
+    _downloadListenerMap[listenerName] = listener;
     _channel.setMethodCallHandler(_handleMethod);
   }
 
   Future<Null> _handleMethod(MethodCall call) async {
     if (call.method == "downloadListener") {
-      return _downloadListener(call.arguments);
+      _downloadListenerMap.values.forEach((element) {
+        element(call.arguments);
+      });
     }
   }
 }
